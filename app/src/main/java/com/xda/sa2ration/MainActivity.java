@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int DEFAULT_PROGRESS = 100;
     public static final String PERSISTENT_COLOR_SATURATION = "persist.sys.sf.color_saturation";
     public static final String PERSISTENT_NATIVE_MODE = "persist.sys.sf.native_mode";
-    private static final float STEP_SB = 10f;
+    private static final float STEP_SB = 5f;
 
     private ActivityMainBinding binding;
     private String saturation = "1.00";
