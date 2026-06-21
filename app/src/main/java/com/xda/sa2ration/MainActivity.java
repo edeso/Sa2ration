@@ -1,23 +1,23 @@
 package com.xda.sa2ration;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
+import android.os.Build;
 import android.os.Bundle;
-import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
-import android.widget.ImageView;
-import android.widget.SeekBar;
-import android.widget.Switch;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import android.view.View;
+import android.widget.*;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.text.HtmlCompat;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.xda.sa2ration.databinding.ActivityMainBinding;
+import java8.util.Optional;
 
 import java.util.Locale;
-
-import androidx.appcompat.app.AppCompatActivity;
-import java8.util.Optional;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,6 +52,29 @@ public class MainActivity extends AppCompatActivity {
         initImageView();
         initCm();
         initButtons();
+
+        if ( Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM ) {
+             binding.getRoot().setFitsSystemWindows(true);
+        }else{
+            // API35 edge-to-edge fix: apply needed system bar paddings
+            ViewCompat.setOnApplyWindowInsetsListener(
+                    binding.getRoot(),
+                    new OnApplyWindowInsetsListener() {
+                        @NonNull
+                        @Override
+                        public WindowInsetsCompat onApplyWindowInsets(@NonNull View view, @NonNull WindowInsetsCompat insets) {
+                            // Retrieve the insets for the system bars (status bar, nav bar, etc.)
+                            Insets systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                            // apply to toolbar as top padding (keeping bg color)
+                            View toolbar = binding.toolbar;
+                            toolbar.setPadding(systemBarsInsets.left,systemBarsInsets.top,systemBarsInsets.right,toolbar.getPaddingBottom());
+                            // apply to frame to position scrollbar properly
+                            view.setPadding(systemBarsInsets.left,view.getPaddingTop(),systemBarsInsets.right,systemBarsInsets.bottom);
+                            return WindowInsetsCompat.CONSUMED;
+                        }
+                    }
+            );
+        }
     }
 
 
@@ -139,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
         preview.setOnClickListener(v -> {
             AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this)
                     .setTitle(R.string.photo_by)
-                    .setMessage(Html.fromHtml(getResources().getString(R.string.photo_by_desc), 0))
+                    .setMessage(HtmlCompat.fromHtml(getResources().getString(R.string.photo_by_desc), HtmlCompat.FROM_HTML_MODE_LEGACY))
                     .show();
 
             TextView link = alertDialog.findViewById(android.R.id.message);
