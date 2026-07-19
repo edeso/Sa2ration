@@ -16,18 +16,22 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "1.0.0"
-        base.archivesName = "Sa2ration-${versionName}"
+        base.archivesName = "Sa2ration_2026-${versionName}"
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            applicationIdSuffix = '.debug'
+            versionNameSuffix = '-DEBUG'
+        }
         release {
-            minifyEnabled false
+            minifyEnabled = true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
-        targetCompatibility = 1.8
-        sourceCompatibility = 1.8
+        targetCompatibility = 1.11
+        sourceCompatibility = 1.11
     }
     viewBinding {
         enabled = true
@@ -40,15 +44,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'net.sourceforge.streamsupport:streamsupport:1.7.4'
-    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     // material v1.14+ API23
     //noinspection GradleDependency,NewerVersionAvailable
     implementation 'com.google.android.material:material:1.13.0'
 
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-
     // workaround fix 'Duplicate class kotlin.collections.jdk8.CollectionsJDK8Kt found in modules ...'
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom:2.0.0"))
+    //implementation(platform("org.jetbrains.kotlin:kotlin-bom:2.0.0"))
 }
