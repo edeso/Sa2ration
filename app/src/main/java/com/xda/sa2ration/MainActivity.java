@@ -1,9 +1,11 @@
 package com.xda.sa2ration;
 
 import android.app.AlertDialog;
+import android.content.*;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
@@ -21,18 +23,14 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    public enum keys {
-        SATURATION, CM
-    }
-
-    public static final int DEFAULT_PROGRESS = 100;
     public static final String PERSISTENT_COLOR_SATURATION = "persist.sys.sf.color_saturation";
     public static final String PERSISTENT_NATIVE_MODE = "persist.sys.sf.native_mode";
-    private static final float STEP_SB = 5f;
+    private static final int STEP_SB = 5;
 
     private ActivityMainBinding binding;
-    private String saturation = "1.00";
-    private String cm = "0";
+    private String saturation = "";
+    private String mode = "";
+    private BroadcastReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,17 +39,33 @@ public class MainActivity extends AppCompatActivity {
             new AlertDialog.Builder(this)
                     .setMessage(R.string.warning_no_root)
                     .setCancelable(false)
-                    .setPositiveButton("Aceptar", (v, a) -> finish())
+                    .setPositiveButton(R.string.ok, (v, a) -> finish())
                     .show();
 
         }
+
+        // TODO probably need a persistent notification to work reliably
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_USER_PRESENT);
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        receiver = new NewBootReceiver();
+        registerReceiver(receiver, filter);
+
         binding = ActivityMainBinding.inflate(getLayoutInflater());
+
         setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
         initSaturationBar();
         initImageView();
         initCm();
         initButtons();
+
+        // simple flow layout workaround
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        if ( displayMetrics.widthPixels/displayMetrics.heightPixels >= 2 )
+            ((LinearLayout) findViewById(R.id.linearlayout)).setOrientation(LinearLayout.HORIZONTAL);
 
         if ( Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM ) {
              binding.getRoot().setFitsSystemWindows(true);
@@ -64,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public WindowInsetsCompat onApplyWindowInsets(@NonNull View view, @NonNull WindowInsetsCompat insets) {
                             // Retrieve the insets for the system bars (status bar, nav bar, etc.)
-                            Insets systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                            Insets systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars()|WindowInsetsCompat.Type.displayCutout());
                             // apply to toolbar as top padding (keeping bg color)
                             View toolbar = binding.toolbar;
                             toolbar.setPadding(systemBarsInsets.left,systemBarsInsets.top,systemBarsInsets.right,toolbar.getPaddingBottom());
@@ -83,9 +97,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        PersistenceController.getInstance(this).storeToProperties(keys.SATURATION.name(), saturation);
-        PersistenceController.getInstance(this).storeToProperties(keys.CM.name(), cm);
-        PersistenceController.getInstance(this).persist();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(receiver);
     }
 
     /**
@@ -95,9 +112,8 @@ public class MainActivity extends AppCompatActivity {
         binding.content.reset.setOnClickListener(v -> reset());
         binding.content.apply.setOnClickListener(v -> {
             super.onPause();
-            PersistenceController.getInstance(this).storeToProperties(keys.SATURATION.name(), saturation);
-            PersistenceController.getInstance(this).storeToProperties(keys.CM.name(), cm);
-            PersistenceController.getInstance(this).persist();
+            preference( PERSISTENT_COLOR_SATURATION, saturation);
+            preference( PERSISTENT_NATIVE_MODE, mode);
             Toast.makeText(this, R.string.values_are_saved, Toast.LENGTH_SHORT).show();
         });
     }
@@ -107,18 +123,18 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initCm() {
         Switch dci = binding.content.dci;
-        boolean enabled;
-        Optional<String> nativeMode = PersistenceController.getInstance(this)
-                .restoreFromProperties(keys.CM.name());
-        if (nativeMode.isPresent()) {
-            cm = nativeMode.get();
-            enabled = cm.equals("0");
+
+        String savedMode = preference( PERSISTENT_NATIVE_MODE );
+        if (savedMode != null) {
+            mode = savedMode;
+            boolean enabled = mode.equals("0");
             binding.content.dci.setChecked(enabled);
         }
         dci.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            cm = isChecked ? "0" : "1";
-            CommandController.execCommand("service call SurfaceFlinger 1023 i32 " + cm);
-            CommandController.setProp(PERSISTENT_NATIVE_MODE, cm);
+            mode = isChecked ? "0" : "";
+            if (mode.equals("0"))
+                CommandController.execCommand("service call SurfaceFlinger 1023 i32 " + mode);
+            CommandController.setProp(PERSISTENT_NATIVE_MODE, mode);
         });
     }
 
@@ -126,32 +142,42 @@ public class MainActivity extends AppCompatActivity {
      * Initializes saturation SeekBar control.
      */
     private void initSaturationBar() {
-        saturation = retrieveCurrentSaturationLevel();
-        float fakeProgress = Float.parseFloat(saturation) * 100;
-        binding.content.seekBar.setProgress((int) fakeProgress);
-        binding.content.seekBar.incrementProgressBy((int)STEP_SB);
-        binding.content.textView.setText(format(Float.parseFloat(saturation)));
+        binding.content.seekBar.incrementProgressBy(STEP_SB);
         binding.content.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            String lastValue = "";
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                progress = progress / (int)STEP_SB;
-                progress = progress * (int)STEP_SB;
-                saturation = format(progress / 100F);
+                float steppedValue = Math.round( (float)seekBar.getProgress() / STEP_SB) * STEP_SB / 100F;
+                saturation = format(steppedValue);
+                if (lastValue.equals(saturation))
+                    return;
+
+                CommandController.execCommand("setprop " + PERSISTENT_COLOR_SATURATION + " " + saturation,
+                        "service call SurfaceFlinger 1022 f " + saturation);
                 binding.content.textView.setText(saturation);
+                lastValue = saturation;
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                float progress = seekBar.getProgress() / 100F;
-                float rounded = ((int)(progress * STEP_SB)) / STEP_SB;
-                saturation = format(rounded);
-                CommandController.execCommand("setprop " + PERSISTENT_COLOR_SATURATION + " " + saturation,
-                        "service call SurfaceFlinger 1022 f " + saturation);
             }
         });
 
+        String savedSaturation = preference( PERSISTENT_COLOR_SATURATION );
+        if (savedSaturation != null)
+            saturation = savedSaturation;
+
+        int progress;
+        try {
+            progress = (int) (Float.parseFloat(saturation) * 100);
+        } catch ( NumberFormatException e) {
+            // ignore, start with 1.00
+            progress = 100;
+            saturation = "1.00";
+        }
+        binding.content.seekBar.setProgress(progress);
     }
 
     /**
@@ -172,30 +198,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Get current persisted saturation level.
-     * @return current saturation level.
-     */
-    private String retrieveCurrentSaturationLevel() {
-        //Optional<String> optCurrent = CommandController.getProp(PERSISTENT_COLOR_SATURATION);
-        Optional<String> optCurrent = PersistenceController.getInstance(this).restoreFromProperties(keys.SATURATION.name());
-        if (optCurrent.isPresent()) {
-            saturation = optCurrent.get();
-        }
-        Log.d(getClass().getName(), "Saturation: " + saturation);
-        return saturation;
-    }
-
-    /**
      * Reset values to default ones.
      */
     private void reset() {
-        binding.content.seekBar.setProgress(DEFAULT_PROGRESS);
+        saturation = "1.00";
+        mode = "";
+        binding.content.seekBar.setProgress(100);
+        binding.content.dci.setChecked(false);
         CommandController.execCommand("setprop " + PERSISTENT_COLOR_SATURATION + " " + saturation,
                 "service call SurfaceFlinger 1022 f " + saturation);
-        binding.content.dci.setChecked(false);
-        PersistenceController.getInstance(this).storeToProperties(keys.CM.name(), cm);
-        PersistenceController.getInstance(this).storeToProperties(keys.SATURATION.name(), saturation);
-        PersistenceController.getInstance(this).persist();
+        // unset saved values
+        preference( PERSISTENT_COLOR_SATURATION, null);
+        preference( PERSISTENT_NATIVE_MODE, null);
     }
 
     /**
@@ -207,5 +221,41 @@ public class MainActivity extends AppCompatActivity {
         return String.format(Locale.US, "%.2f", progress);
     }
 
+    /**
+     *  Local preference method using current context.
+     * @param key
+     * @param values
+     * @return
+     */
+    private String preference( String key, String ... values ){
+        return preference( this, key, values);
+    }
 
+    /**
+     *  Global preference method.
+     *  Saves a value to a key. if value is null the preference is deleted.
+     * @param context
+     * @param key
+     * @param values
+     * @return
+     */
+    public static String preference(Context context, String key, String ... values ){
+        if ( context == null || key == null )
+            return null;
+
+        SharedPreferences prefs = context.getSharedPreferences("preferences", 0);
+        if ( values == null || values.length > 0 ) {
+            String value = values == null ? null : values[0];
+            SharedPreferences.Editor editor = prefs.edit();
+            if ( value == null || value.isEmpty() )
+                editor.remove( key );
+            else
+                editor.putString( key, value );
+
+            editor.apply();
+            return value;
+        }
+
+        return prefs.getString( key, null );
+    }
 }
