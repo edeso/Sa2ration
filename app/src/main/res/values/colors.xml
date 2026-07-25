@@ -1,10 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#455a64</color>
-    <color name="colorPrimaryDark">#102027</color>
-    <color name="colorPrimaryLight">#62727b</color>
-    <color name="colorAccent">#718792</color>
-    <color name="colorBg">#000a12</color>
-    <color name="colorBgLight">#131b21</color>
-    <color name="black">#000</color>
+    <!--
+    <color name="color1">#718792</color>
+    <color name="color2">#62727b</color>
+    <color name="color3">#455a64</color>
+    <color name="color4">#102027</color>
+    <color name="color5">#131b21</color>
+    <color name="color6">#000a12</color>
+    -->
+    <!--
+    https://coolors.co/718792-556872-394952-2b3a42-1d2a32-16222a-0f1a22-08121a-040e16-000a12
+    -->
+    <color name="color1">#718792</color>
+    <color name="color2">#556872</color>
+    <color name="color3">#394952</color>
+    <color name="color4">#2B3A42</color>
+    <color name="color5">#1D2A32</color>
+    <color name="color6">#16222A</color>
+    <color name="color7">#0F1A22</color>
+    <color name="color8">#08121A</color>
+    <color name="color9">#040E16</color>
+    <color name="color10">#000a12</color>
+
+    <color name="colorPrimary">@color/color3</color>
+    <color name="colorPrimaryDark">@color/color4</color>
+    <color name="colorAccent">@color/color1</color>
+    <color name="colorBg">@android:color/background_light</color>
 </resources>

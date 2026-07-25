@@ -4,8 +4,8 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay"
+        android:layout_height="match_parent"
+        android:background="@color/colorPrimaryDark"
         tools:context=".MainActivity">
 
     <androidx.appcompat.widget.Toolbar
@@ -13,7 +13,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay"/>
+            app:contentInsetStart="10dp"
+            app:titleTextColor="@android:color/white"
+            app:title="@string/app_name"
+            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:titleTextAppearance="@style/ToolbarTitle"/>
 
     <include layout="@layout/content_main"
              android:id="@+id/content"/>

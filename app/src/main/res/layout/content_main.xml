@@ -4,7 +4,7 @@
             xmlns:tools="http://schemas.android.com/tools"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/colorPrimaryDark">
+            android:background="@color/colorBg">
     <LinearLayout
             android:id="@+id/linearlayout"
             android:layout_width="match_parent"
@@ -47,8 +47,12 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:layout_gravity="bottom"
+                android:layout_gravity="center_vertical"
                 android:padding="8dp">
+
+            <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp"/>
 
             <TextView
                     android:layout_width="wrap_content"
@@ -60,7 +64,6 @@
                     android:id="@+id/slider_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
                     android:orientation="horizontal">
 
                 <SeekBar
@@ -75,15 +78,21 @@
                         android:id="@+id/textView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="100.00"
+                        android:text="1.00"
                         android:textAlignment="textEnd"/>
             </LinearLayout>
+
+            <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:visibility="gone"/>
 
             <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/color_management"
-                    android:textSize="16sp"/>
+                    android:textSize="16sp"
+                    android:visibility="gone"/>
 
             <Switch
                     android:id="@+id/dci"
@@ -94,17 +103,45 @@
                     android:focusable="true"
                     android:paddingStart="16dp"
                     android:text="@string/enable_dci"
+                    android:textSize="14sp"
+                    android:visibility="gone"/>
+
+            <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"/>
+
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/autostart"
+                    android:textSize="16sp"/>
+
+            <Switch
+                    android:id="@+id/autostart"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="16dp"
+                    android:text="@string/autostart_explanation"
+                    android:checked="true"
                     android:textSize="14sp"/>
+
+            <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp"/>
 
             <LinearLayout
                     android:id="@+id/buttons_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingTop="16dp">
+                    android:orientation="horizontal">
+
+                <Space
+                        android:layout_width="0dp"
+                        android:layout_weight="0"
+                        android:layout_height="match_parent"/>
 
                 <Button
-                        android:id="@+id/reset"
+                        android:id="@+id/reset_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/reset"/>
@@ -115,11 +152,28 @@
                         android:layout_height="match_parent"/>
 
                 <Button
-                        android:id="@+id/apply"
+                        android:id="@+id/apply_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/apply"
+                        android:enabled="false"/>
+                <Space
+                        android:layout_width="0dp"
+                        android:layout_weight="0"
+                        android:layout_height="match_parent"/>
+
+                <Button
+                        android:id="@+id/save_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/save"/>
+
+                <Space
+                        android:layout_width="0dp"
+                        android:layout_weight="0"
+                        android:layout_height="match_parent"/>
             </LinearLayout>
+
         </LinearLayout>
     </LinearLayout>
 </ScrollView>
