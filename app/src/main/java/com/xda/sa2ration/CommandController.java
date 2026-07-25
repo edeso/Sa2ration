@@ -2,22 +2,20 @@ package com.xda.sa2ration;
 
 import android.util.Log;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
-import java8.util.Optional;
+import java.io.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class CommandController {
+
+    static ExecutorService executor = Executors.newSingleThreadExecutor();
 
     /**
      * Gets property from Android system
      * @param systemProperty property name
-     * @return optional with property value, if found
+     * @return String may be empty
      */
-    public static Optional<String> getProp(String systemProperty) {
+    public static String getProp(String systemProperty) {
         return execCommand("getprop " + systemProperty);
     }
 
@@ -25,9 +23,9 @@ public class CommandController {
      * Sets a system property value
      * @param systemProperty property name
      * @param value new value for the property
-     * @return optional with result, if any
+     * @return String may be empty
      */
-    public static Optional<String> setProp(String systemProperty, String value) {
+    public static String setProp(String systemProperty, String value) {
         return execCommand("setprop " + systemProperty + " " + value);
     }
 
@@ -36,8 +34,7 @@ public class CommandController {
      * @param commands String array containing the commands.
      * @return the result, if any.
      */
-    public static Optional<String> execCommand(String... commands) {
-        String result = null;
+    private static String execCommand(String... commands) {
         StringBuilder sb = new StringBuilder();
         try {
             Process su = Runtime.getRuntime().exec("su");
@@ -63,18 +60,39 @@ public class CommandController {
         } catch(IOException e){
             e.printStackTrace();
         }
-        if (sb.length() != 0) {
-            result = sb.toString();
-        }
-        return Optional.ofNullable(result);
+
+        return sb.toString();
+    }
+
+    public static void setSaturation( String saturation ){
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                execCommand(
+                        "setprop " + MainActivity.PERSISTENT_COLOR_SATURATION + " " + saturation,
+                        "service call SurfaceFlinger 1022 f " + saturation
+                );
+            }
+        });
+    }
+
+    public static void setMode( String mode ){
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                execCommand(
+                        "service call SurfaceFlinger 1023 i32 " + mode,
+                        "setprop " + MainActivity.PERSISTENT_NATIVE_MODE + " " + mode
+                );
+            }
+        });
     }
 
     /**
-     * Test wether user has root access.
+     * Test whether user has root access.
      * @return true if user has root access, false otherwise.
      */
     public static boolean testSudo() {
-        StackTraceElement st = null;
         boolean success = false;
         try {
             Process su = Runtime.getRuntime().exec("su");

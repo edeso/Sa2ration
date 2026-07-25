@@ -3,8 +3,7 @@ package com.xda.sa2ration;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-
-import java8.util.Optional;
+import android.widget.Toast;
 
 public class NewBootReceiver extends BroadcastReceiver {
 
@@ -15,14 +14,29 @@ public class NewBootReceiver extends BroadcastReceiver {
      */
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-            // Establecer saturacion guardada
-            Optional<String> saturation = PersistenceController.getInstance(context).restoreFromProperties(MainActivity.keys.SATURATION.name());
-            Optional<String> cm = PersistenceController.getInstance(context).restoreFromProperties( MainActivity.keys.CM.name());
-            saturation.ifPresent(s -> CommandController.execCommand("setprop " + MainActivity.PERSISTENT_COLOR_SATURATION
-                    + " " + s, "service call SurfaceFlinger 1022 f " + s));
-            cm.ifPresent(c ->  CommandController.execCommand("service call SurfaceFlinger 1023 i32 " + c ));
+
+        switch (intent.getAction()) {
+            case Intent.ACTION_BOOT_COMPLETED:
+                String savedAutostart = MainActivity.preference( context, MainActivity.PERSISTENT_AUTOSTART);
+                // autostart disabled?
+                if (!Boolean.valueOf(savedAutostart))
+                    return;
+                break;
+            case Intent.ACTION_SCREEN_ON:
+            case Intent.ACTION_USER_PRESENT:
+                // TODO: possibly implement a persistent notification and apply setting on every login
+                //Toast.makeText(context, intent.getAction().toString(), Toast.LENGTH_SHORT).show();
+            default:
+                return;
         }
+
+        String saturation = MainActivity.preference( context, MainActivity.PERSISTENT_COLOR_SATURATION);
+        if (saturation != null)
+            CommandController.setSaturation(saturation);
+
+        String mode = MainActivity.preference( context, MainActivity.PERSISTENT_NATIVE_MODE);
+        if (mode != null)
+            CommandController.setMode(mode);
     }
 
 }
