@@ -1,10 +1,21 @@
 apply plugin: 'com.android.application'
 
+// count tags and use as Android versionCode
+// https://developer.android.com/studio/publish/versioning
+def getVersionCode = { ->
+    def stream = providers.exec {
+        commandLine 'git', 'tag', '--list'
+    }.standardOutput
+    return stream.asText.get().split("\n").size() as Integer
+}
+
 android {
+    def app_version = "2026.07.20"
+
     compileSdk {
         version = release(37) {
             // this block and its properties are optional
-            minorApiLevel = 0
+            minorApiLevel = 1
             //sdkExtension = 18
         }
         //version = preview("CinnamonBun")
@@ -14,19 +25,25 @@ android {
         namespace = 'com.xda.sa2ration'
         minSdk = 21
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0.0"
-        base.archivesName = "Sa2ration_2026-${versionName}"
+        versionCode = getVersionCode()
+        versionName = app_version
+        base.archivesName = "Sa2ration ${versionName}"
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildFeatures {
+        resValues = true
+        buildConfig = true
     }
     buildTypes {
         debug {
             applicationIdSuffix = '.debug'
             versionNameSuffix = '-DEBUG'
+            resValue "string", "app_name",  "Sa2ration Debug ${app_version}"
         }
         release {
+            resValue "string", "app_name",  "Sa2ration ${app_version}"
             minifyEnabled = true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
@@ -42,12 +59,14 @@ dependencies {
     //implementation fileTree(dir: 'libs', include: ['*.jar'])
     // appcompat v1.7+ API21
     implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'net.sourceforge.streamsupport:streamsupport:1.7.4'
     // material v1.14+ API23
     //noinspection GradleDependency,NewerVersionAvailable
     implementation 'com.google.android.material:material:1.13.0'
 
     // workaround fix 'Duplicate class kotlin.collections.jdk8.CollectionsJDK8Kt found in modules ...'
     //implementation(platform("org.jetbrains.kotlin:kotlin-bom:2.0.0"))
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ["-Xlint:deprecation"]
 }
