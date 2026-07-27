@@ -1,4 +1,5 @@
-# Sa2ration 2026
+# Sa2ration 2026        ![Sa2ration logo](https://raw.githubusercontent.com/edeso/Sa2ration/master/art/icon.svg)
+
 
 This is a fork of **Sa2ration Enhanced** by MiguelAngel
 
