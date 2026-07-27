@@ -2,15 +2,23 @@ package com.xda.sa2ration;
 
 import android.app.AlertDialog;
 import android.content.*;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
+import android.text.style.AbsoluteSizeSpan;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.*;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatTextView;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.text.HtmlCompat;
@@ -43,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
-        if (false && !CommandController.testSudo())
+        if (!CommandController.testSudo())
             new AlertDialog.Builder(this)
                     .setMessage(R.string.warning_no_root)
                     .setCancelable(false)
@@ -106,7 +114,35 @@ public class MainActivity extends AppCompatActivity {
             );
         }
         // set toolbar icon
-        getSupportActionBar().setIcon(R.drawable.icon_padded);
+        ActionBar toolbar = getSupportActionBar();
+        toolbar.setIcon(R.drawable.icon_padded);
+        final SpannableString s = new SpannableString("  (" + ContextCompat.getString(this, R.string.app_commit) + ")");
+        s.setSpan(new AbsoluteSizeSpan(10, true), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        toolbar.setTitle(TextUtils.concat(toolbar.getTitle(), s));
+
+        // add onClickListener to toolbar title
+        binding.toolbar.getViewTreeObserver().addOnPreDrawListener(
+                new ViewTreeObserver.OnPreDrawListener() {
+                    @Override
+                    public boolean onPreDraw() {
+                        for (int i = 0; i < binding.toolbar.getChildCount(); i++) {
+                            View tmpView = binding.toolbar.getChildAt(i);
+                            if (AppCompatTextView.class.equals(tmpView.getClass())) {
+                                tmpView.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        //do whatever you want here
+                                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/edeso/Sa2ration"));
+                                        startActivity(browserIntent);
+                                    }
+                                });
+                            }
+                        }
+                        binding.toolbar.getViewTreeObserver().removeOnPreDrawListener(this);
+                        // view is measured and laid out
+                        return true;
+                    }
+                });
     }
 
 
