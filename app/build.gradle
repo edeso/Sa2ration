@@ -4,13 +4,29 @@ apply plugin: 'com.android.application'
 // https://developer.android.com/studio/publish/versioning
 def getVersionCode = { ->
     def stream = providers.exec {
-        commandLine 'git', 'tag', '--list'
+        commandLine 'git', 'rev-list', '--count', 'master'
     }.standardOutput
     return stream.asText.get().split("\n").size() as Integer
 }
 
+def getVersionDate = { ->
+    def stream = providers.exec {
+        commandLine 'git', 'log', '-1', '--format=%as'
+    }.standardOutput
+    return stream.asText.get().trim().replace('-','.') //.replaceAll("[^\\x00-\\x7F]", "")
+}
+
+def getVersionCommit = { ->
+    def stream = providers.exec {
+        commandLine 'git', 'log', '-1', '--format=%h'
+    }.standardOutput
+    return stream.asText.get().trim() //.replaceAll("[^\\x00-\\x7F]", "")
+}
+
 android {
-    def app_version = "2026.07.20"
+    def app_name = "Sa2ration"
+    def app_version = getVersionDate()
+    def app_commit = getVersionCommit()
 
     compileSdk {
         version = release(37) {
@@ -26,9 +42,12 @@ android {
         minSdk = 21
         targetSdk = 37
         versionCode = getVersionCode()
-        versionName = app_version
-        base.archivesName = "Sa2ration ${versionName}"
-        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
+        versionName = "${app_version}-${app_commit}"
+        base.archivesName = "${app_name}-${app_version}-${app_commit}"
+        resValue "string",
+                "app_commit",
+                groovy.json.StringEscapeUtils.escapeJavaScript("${app_commit}")
+
     }
     buildFeatures {
         resValues = true
@@ -38,10 +57,14 @@ android {
         debug {
             applicationIdSuffix = '.debug'
             versionNameSuffix = '-DEBUG'
-            resValue "string", "app_name",  "Sa2ration Debug ${app_version}"
+            resValue "string",
+                    "app_name",
+                    groovy.json.StringEscapeUtils.escapeJavaScript("${app_name} Debug ${app_version}")
         }
         release {
-            resValue "string", "app_name",  "Sa2ration ${app_version}"
+            resValue "string",
+                    "app_name",
+                    groovy.json.StringEscapeUtils.escapeJavaScript("${app_name} ${app_version}")
             minifyEnabled = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -61,7 +84,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     // material v1.14+ API23
     //noinspection GradleDependency,NewerVersionAvailable
-    implementation 'com.google.android.material:material:1.13.0'
+    //implementation 'com.google.android.material:material:1.13.0'
 
     // workaround fix 'Duplicate class kotlin.collections.jdk8.CollectionsJDK8Kt found in modules ...'
     //implementation(platform("org.jetbrains.kotlin:kotlin-bom:2.0.0"))
@@ -69,4 +92,15 @@ dependencies {
 
 tasks.withType(JavaCompile) {
     options.compilerArgs += ["-Xlint:deprecation"]
+}
+
+// new AGP9 DSL variant to rename release apk only
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        if (variant.buildType.equals("release")) {
+            variant.outputs.forEach { output ->
+                output.outputFileName.set("${base.archivesName.get()}.apk")
+            }
+        }
+    }
 }
