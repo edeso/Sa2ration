@@ -4,6 +4,8 @@
           android:height="24dp"/>
     <item android:drawable="@drawable/icon"
           android:gravity="start"
+          android:width="24dp"
+          android:height="24dp"
           android:top="0dp"
           android:left="0dp"
     />
