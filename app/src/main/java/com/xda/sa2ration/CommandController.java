@@ -3,15 +3,21 @@ package com.xda.sa2ration;
 import android.util.Log;
 
 import java.io.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class CommandController {
 
-    static ExecutorService executor = Executors.newSingleThreadExecutor();
+    static ExecutorService executor = new ThreadPoolExecutor(
+            1, 1,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>(2),
+            Executors.defaultThreadFactory(),
+            new ThreadPoolExecutor.DiscardOldestPolicy());
+    //Executors.newSingleThreadExecutor();
 
     /**
      * Gets property from Android system
+     *
      * @param systemProperty property name
      * @return String may be empty
      */
@@ -21,8 +27,9 @@ public class CommandController {
 
     /**
      * Sets a system property value
+     *
      * @param systemProperty property name
-     * @param value new value for the property
+     * @param value          new value for the property
      * @return String may be empty
      */
     public static String setProp(String systemProperty, String value) {
@@ -31,6 +38,7 @@ public class CommandController {
 
     /**
      * Executes a set of commands as root.
+     *
      * @param commands String array containing the commands.
      * @return the result, if any.
      */
@@ -39,7 +47,7 @@ public class CommandController {
         try {
             Process su = Runtime.getRuntime().exec("su");
             try (DataOutputStream outputStream = new DataOutputStream(su.getOutputStream())) {
-                for (String command: commands) {
+                for (String command : commands) {
                     outputStream.writeBytes(command + "\n");
                     outputStream.flush();
                 }
@@ -57,14 +65,14 @@ public class CommandController {
                 e.printStackTrace();
                 Log.e("No Root?", e.getMessage());
             }
-        } catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
         return sb.toString();
     }
 
-    public static void setSaturation( String saturation ){
+    public static void setSaturation(String saturation) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -76,7 +84,7 @@ public class CommandController {
         });
     }
 
-    public static void setMode( String mode ){
+    public static void setMode(String mode) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -90,6 +98,7 @@ public class CommandController {
 
     /**
      * Test whether user has root access.
+     *
      * @return true if user has root access, false otherwise.
      */
     public static boolean testSudo() {
