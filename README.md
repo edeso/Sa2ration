@@ -16,4 +16,7 @@ which was a fork of the original project **Sa2ration**, from Zacharee.
 https://xdaforums.com/t/app-root-sa2ration.3845851/ <br>
 https://github.com/zacharee/Sa2ration
 
+## Screenshots
 
+<img src="https://github.com/edeso/Sa2ration/blob/master/art/screenshot-landscape-gray.jpg?raw=true" width="75%">
+<img src="https://github.com/edeso/Sa2ration/blob/master/art/screenshot-portrait-doubled.jpg?raw=true" width="33%">
