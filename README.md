@@ -23,4 +23,4 @@ https://github.com/zacharee/Sa2ration
 ## Screenshots
 
 <img src="https://github.com/edeso/Sa2ration/blob/master/art/screenshot-landscape-gray.jpg?raw=true" width="75%">
-<img src="https://github.com/edeso/Sa2ration/blob/master/art/screenshot-portrait-doubled.jpg?raw=true" width="33%">
+<img src="https://github.com/edeso/Sa2ration/blob/master/art/screenshot-portrait-doubled.jpg?raw=true" width="40%">
