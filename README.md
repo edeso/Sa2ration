@@ -4,6 +4,10 @@ Modify surface flinger saturation on your android to your liking.
 Should work on any ROM as it utilizes SurfaceFlinger the default android display manager.
 **You need a rooted android for this app to work.**
 
+## Download
+
+https://sourceforge.net/projects/sa2ration-2026/files/
+
 ## History
 
 This is a fork of **Sa2ration Enhanced** by MiguelAngel
