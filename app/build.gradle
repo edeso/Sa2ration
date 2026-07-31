@@ -76,6 +76,18 @@ android {
     viewBinding {
         enabled = true
     }
+    dependenciesInfo {
+        /**
+         * BLOB that's supposed to be just a binary representation of your app's
+         * dependency tree. But as it's encrypted with a public key belonging
+         * to Google, only Google can read it – and nobody else can even verify
+         * what it really contains.
+         */
+        // Disables dependency metadata when building APKs.
+        includeInApk = false
+        // Disables dependency metadata when building Android App Bundles.
+        includeInBundle = false
+    }
 }
 
 dependencies {
