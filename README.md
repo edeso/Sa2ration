@@ -12,7 +12,7 @@ https://sourceforge.net/projects/sa2ration-2026/files/
 
 ## History
 
-This is a fork of **Sa2ration Enhanced** by MiguelAngel
+This is a fork of **Sa2ration Enhanced** by Miguel Ángel Ortiz Peñaranda
 
 https://sourceforge.net/projects/sa2ration/ <br>
 https://sourceforge.net/p/sa2ration/code/ci/master/tree/
