@@ -1,7 +1,7 @@
 Sa2ration 2026 - Change display color saturation on rooted android devices.
 
 Copyright (C) 2026 Edgar Soldin<br>
-Copyright (C) 2020 MiguelAngel<br>
+Copyright (C) 2020 Miguel Ángel Ortiz Peñaranda<br>
 Copyright (C) 2017 Zacharee
 
 This program is free software: you can redistribute it and/or modify
